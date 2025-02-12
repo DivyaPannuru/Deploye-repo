@@ -1,1 +1,79 @@
 https://notepad.pw/share/koLNw0hVdTBZe6YeQSvg 
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const LeaveRequestForm: React.FC = () => {
+    const [employeeName, setEmployeeName] = useState<string>('');
+    const [startDate, setStartDate] = useState<string>('');
+    const [endDate, setEndDate] = useState<string>('');
+    const [quantity, setQuantity] = useState<number>(0);
+    const [status, setStatus] = useState<string>('Pending');
+
+    useEffect(() => {
+        const name = localStorage.getItem('employeeName');
+        if (name) {
+            setEmployeeName(name);
+        }
+    }, []);
+
+    const calculateQuantity = (start: string, end: string): number => {
+        const startDt = new Date(start);
+        const endDt = new Date(end);
+        const diffTime = Math.abs(endDt.getTime() - startDt.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return diffDays;
+    };
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        const leaveRequest = {
+            employeeName,
+            startDate,
+            endDate,
+            quantity,
+            status,
+        };
+
+        try {
+            await axios.post('https://yourapiendpoint.com/api/leaverequests', leaveRequest);
+            alert('Leave request submitted successfully');
+        } catch (error) {
+            console.error('There was an error submitting the leave request!', error);
+        }
+    };
+
+    useEffect(() => {
+        if (startDate && endDate) {
+            setQuantity(calculateQuantity(startDate, endDate));
+        }
+    }, [startDate, endDate]);
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <div>
+                <label>Employee Name: </label>
+                <input type="text" value={employeeName} readOnly />
+            </div>
+            <div>
+                <label>Start Date: </label>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+            </div>
+            <div>
+                <label>End Date: </label>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+            </div>
+            <div>
+                <label>Quantity: </label>
+                <input type="number" value={quantity} readOnly />
+            </div>
+            <div>
+                <label>Status: </label>
+                <input type="text" value={status} readOnly />
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    );
+};
+
+export default LeaveRequestForm;
